@@ -1,0 +1,126 @@
+
+2048.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+close
+  rotate: false
+  xy: 1, 388
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+f1
+  rotate: false
+  xy: 1, 264
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+f2
+  rotate: false
+  xy: 125, 388
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+f3
+  rotate: false
+  xy: 1, 140
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+f4
+  rotate: false
+  xy: 125, 264
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+f5
+  rotate: false
+  xy: 249, 388
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+open
+  rotate: false
+  xy: 1, 16
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+power_off
+  rotate: false
+  xy: 125, 140
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+redo
+  rotate: false
+  xy: 249, 264
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+reset
+  rotate: false
+  xy: 373, 388
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+select
+  rotate: false
+  xy: 125, 16
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+stretch_off
+  rotate: false
+  xy: 249, 140
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+stretch_on
+  rotate: false
+  xy: 373, 264
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+undo
+  rotate: false
+  xy: 249, 16
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+table_frame
+  rotate: false
+  xy: 373, 208
+  size: 54, 54
+  split: 27, 26, 27, 26
+  orig: 54, 54
+  offset: 0, 0
+  index: -1
+button_frame
+  rotate: false
+  xy: 373, 170
+  size: 36, 36
+  split: 13, 13, 13, 13
+  orig: 36, 36
+  offset: 0, 0
+  index: -1
+main_back
+  rotate: false
+  xy: 1, 1
+  size: 13, 13
+  orig: 13, 13
+  offset: 0, 0
+  index: -1

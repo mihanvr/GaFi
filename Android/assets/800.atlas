@@ -1,0 +1,126 @@
+
+800.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+close
+  rotate: false
+  xy: 1, 74
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+f1
+  rotate: false
+  xy: 1, 24
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+f2
+  rotate: false
+  xy: 51, 74
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+f3
+  rotate: false
+  xy: 51, 24
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+f4
+  rotate: false
+  xy: 101, 74
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+f5
+  rotate: false
+  xy: 101, 24
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+open
+  rotate: false
+  xy: 151, 74
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+power_off
+  rotate: false
+  xy: 151, 24
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+redo
+  rotate: false
+  xy: 201, 74
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+reset
+  rotate: false
+  xy: 201, 24
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+select
+  rotate: false
+  xy: 251, 74
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+stretch_off
+  rotate: false
+  xy: 251, 24
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+stretch_on
+  rotate: false
+  xy: 301, 74
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+undo
+  rotate: false
+  xy: 301, 24
+  size: 48, 48
+  orig: 48, 48
+  offset: 0, 0
+  index: -1
+table_frame
+  rotate: false
+  xy: 1, 1
+  size: 21, 21
+  split: 10, 10, 10, 10
+  orig: 21, 21
+  offset: 0, 0
+  index: -1
+button_frame
+  rotate: false
+  xy: 351, 108
+  size: 14, 14
+  split: 5, 5, 5, 5
+  orig: 14, 14
+  offset: 0, 0
+  index: -1
+main_back
+  rotate: false
+  xy: 24, 17
+  size: 5, 5
+  orig: 5, 5
+  offset: 0, 0
+  index: -1

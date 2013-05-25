@@ -1,0 +1,126 @@
+
+1280.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+close
+  rotate: false
+  xy: 1, 167
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+f1
+  rotate: false
+  xy: 1, 89
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+f2
+  rotate: false
+  xy: 79, 167
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+f3
+  rotate: false
+  xy: 1, 11
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+f4
+  rotate: false
+  xy: 79, 89
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+f5
+  rotate: false
+  xy: 157, 167
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+open
+  rotate: false
+  xy: 79, 11
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+power_off
+  rotate: false
+  xy: 157, 89
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+redo
+  rotate: false
+  xy: 235, 167
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+reset
+  rotate: false
+  xy: 157, 11
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+select
+  rotate: false
+  xy: 235, 89
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+stretch_off
+  rotate: false
+  xy: 313, 167
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+stretch_on
+  rotate: false
+  xy: 235, 11
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+undo
+  rotate: false
+  xy: 313, 89
+  size: 76, 76
+  orig: 76, 76
+  offset: 0, 0
+  index: -1
+table_frame
+  rotate: false
+  xy: 391, 210
+  size: 33, 33
+  split: 16, 16, 16, 16
+  orig: 33, 33
+  offset: 0, 0
+  index: -1
+button_frame
+  rotate: false
+  xy: 313, 65
+  size: 22, 22
+  split: 9, 9, 9, 9
+  orig: 22, 22
+  offset: 0, 0
+  index: -1
+main_back
+  rotate: false
+  xy: 1, 1
+  size: 8, 8
+  orig: 8, 8
+  offset: 0, 0
+  index: -1
