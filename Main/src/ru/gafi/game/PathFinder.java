@@ -60,7 +60,7 @@ public class PathFinder {
 
 	private static Point[] ReconstructPath(Node node) {
 		List<Point> list = new ArrayList<>();
-		while (node.prev != null) {
+		while (node != null) {
 			list.add(node.point);
 			node = node.prev;
 		}

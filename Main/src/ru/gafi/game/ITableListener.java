@@ -29,12 +29,9 @@ public interface ITableListener {
 	void onClearTable();
 
 	public class MoveFigureResult {
-		public Point from, to;
 		public Point[] path;
 
-		public MoveFigureResult(Point from, Point to, Point[] path) {
-			this.from = from;
-			this.to = to;
+		public MoveFigureResult(Point[] path) {
 			this.path = path;
 		}
 	}

@@ -42,7 +42,7 @@ public class Main implements ApplicationListener, InputProcessor {
 	private VTable vTable;
 	private TaskManager taskManager;
 	private GameModelDao tableModelDao;
-	private TableModel _tableModel;
+	private GameModel gameModel;
 	private TableController _tableController;
 	private Stage stage;
 	private Settings settings;
@@ -150,13 +150,6 @@ public class Main implements ApplicationListener, InputProcessor {
 		return skin;
 	}
 
-	private NinePatch getNinePatch(TextureAtlas atlas, String patchName, float scale) {
-		Sprite sprite = getSprite(atlas, patchName, scale);
-		TextureAtlas.AtlasRegion region = atlas.findRegion(patchName);
-		int[] splits = region.splits;
-		return new NinePatch(sprite, splits[0], splits[1], splits[2], splits[3]);
-	}
-
 	private Sprite getSprite(TextureAtlas atlas, String spriteName, float scale) {
 		Sprite sprite = atlas.createSprite(spriteName);
 		sprite.scale(scale);
@@ -172,9 +165,8 @@ public class Main implements ApplicationListener, InputProcessor {
 		if (tableModelDao.canBeResumed()) {
 			resumeGame();
 		} else {
-			newGame(14, 7);
+			newDefaultGame();
 		}
-
 	}
 
 	private void setInputProcessor() {
@@ -233,7 +225,7 @@ public class Main implements ApplicationListener, InputProcessor {
 
 	private void newGame(int columnCount, int rowCount) {
 		TableModel tableModel = new TableModel(columnCount, rowCount);
-		startGame(tableModel, true);
+		startGame(GameModel.create(tableModel), true);
 	}
 
 	private void save() {
@@ -246,7 +238,7 @@ public class Main implements ApplicationListener, InputProcessor {
 	}
 
 	private void saveTable() {
-		tableModelDao.saveGame(_tableModel);
+		tableModelDao.saveGame(gameModel);
 	}
 
 	private void removeSavedGame() {
@@ -255,17 +247,27 @@ public class Main implements ApplicationListener, InputProcessor {
 
 	public void resumeGame() {
 		if (tableModelDao.canBeResumed()) {
-			TableModel tableModel = tableModelDao.getSavedTableModel();
-			startGame(tableModel, false);
+			GameModel gameModel = tableModelDao.getSavedGameModel();
+			if (gameModel == null) {
+				Gdx.app.error("Main", "GameModel not loaded");
+				newDefaultGame();
+			} else {
+				startGame(gameModel, false);
+			}
 		}
 	}
 
-	public void startGame(TableModel tableModel, boolean withInitMove) {
-		_tableModel = tableModel;
-		_tableController = new TableController();
-		_tableController.SetTable(tableModel);
+	public void newDefaultGame() {
+		newGame(14, 7);
+	}
 
-		vTable.set(_tableController, tableModel);
+	public void startGame(GameModel gameModel, boolean withInitMove) {
+		this.gameModel = gameModel;
+		_tableController = new TableController();
+		_tableController.SetTable(gameModel.tableModel);
+		_tableController.setHistory(gameModel.actionHistory);
+
+		vTable.set(_tableController, gameModel.tableModel);
 		new EndGameListener(this, _tableController);
 		//		_tableController.AddListener(new TableControllerLogger());
 

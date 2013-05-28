@@ -138,10 +138,8 @@ public class VTable extends AnimatedActor implements ITableListener {
 	}
 
 	public void onMoveFigure(MoveFigureResult result) {
-		Point from = result.from;
-		Point to = result.to;
 		unselect();
-		doAction(new ActionMoveFigure(this, from, to, result.path));
+		doAction(new ActionMoveFigure(this, result.path));
 	}
 
 	public void onWin() {
@@ -578,10 +576,10 @@ public class VTable extends AnimatedActor implements ITableListener {
 		private Point to;
 		private VFigure vFigure;
 
-		public ActionMoveFigure(VTable vtable, Point from, Point to, Point[] path) {
+		public ActionMoveFigure(VTable vtable, Point[] path) {
 			super(vtable, ActionType.MoveFigure);
-			this.from = from;
-			this.to = to;
+			from = path[0];
+			to = path[path.length-1];
 			this.path = path;
 		}
 
@@ -596,10 +594,9 @@ public class VTable extends AnimatedActor implements ITableListener {
 						firstPoint, vtable.getPointPosition(to)
 				};
 			} else {
-				checkPoints = new Vector2[path.length + 1];
-				checkPoints[0] = firstPoint;
+				checkPoints = new Vector2[path.length];
 				for (int i = 0; i < path.length; i++) {
-					checkPoints[i + 1] = vtable.getPointPosition(path[i]);
+					checkPoints[i] = vtable.getPointPosition(path[i]);
 				}
 			}
 			timeDuration = vtable.animateMove(vFigure, checkPoints);

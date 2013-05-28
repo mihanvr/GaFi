@@ -1,32 +1,29 @@
 package ru.gafi.game;
 
-import ru.gafi.common.ICommand;
 import ru.gafi.common.Point;
+import ru.gafi.game.actions.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 
 /**
- * Created with IntelliJ IDEA.
  * User: Michael
  * Date: 20.05.13
  * Time: 20:45
  */
 public class TableController {
-	public enum Action {Add, Remove, Open, Close, Move};
-
 	private List<ITableListener> listeners = new ArrayList<>();
 	private boolean[][] burnTable;
 	private TableModel tableModel;
-	private Stack<ICommand> qUndo = new Stack<>();
-	private Stack<ICommand> qRedo = new Stack<>();
-	private List<ICommand> commandStore = new ArrayList<>();
-	private CommandSet commandSet;
+	private ActionHistory history;
 	private PathFinder pathFinder;
 	private Figure[] figures = Figure.values();
-	private Random random = new Random();
+	private RNG random;
 
 	public TableController() {
 		pathFinder = new PathFinder();
+		random = new RNG(0);
 	}
 
 	private int columnCount() {
@@ -41,8 +38,8 @@ public class TableController {
 		if (isValidMove(from, to)) {
 			PathFinder.FindPathResult findResult = findPath(from, to);
 			if (findResult.pathFinded) {
-				commandStore.clear();
-				execute(new CommandMoveFigure(this, from, to, findResult.path));
+				startRecord();
+				doAction(new ActionMove(findResult.path));
 				burnCompleteFigures();
 				boolean gameEnded = false;
 				if (!usefulStep()) {
@@ -59,7 +56,7 @@ public class TableController {
 				if (!gameEnded && getCountOfBusyCells() == 0) {
 					addRandomFigures();
 				}
-				qUndo.push(new CommandSet(commandStore));
+				stopRecord();
 			} else {
 				fireOnMoveFailure();
 			}
@@ -68,7 +65,15 @@ public class TableController {
 		}
 	}
 
-private boolean isValidMove(Point from, Point to) {
+	private void startRecord() {
+		history.startRecord(random.getSeed());
+	}
+
+	private void stopRecord() {
+		history.stopRecord(random.getSeed());
+	}
+
+	private boolean isValidMove(Point from, Point to) {
 		return tableModel.getCell(from.x, from.y).figure != null && tableModel.getCell(to.x, to.y).figure == null;
 	}
 
@@ -96,13 +101,15 @@ private boolean isValidMove(Point from, Point to) {
 		}
 	}
 
-	public void moveFigure(Point from, Point to, Point[] path) {
+	public void moveFigure(Point[] path) {
+		Point from = path[0];
+		Point to = path[path.length - 1];
 		TableCell fromCell = tableModel.getCell(from.x, from.y);
 		TableCell toCell = tableModel.getCell(to.x, to.y);
 		toCell.figure = fromCell.figure;
 		fromCell.figure = null;
 
-		fireOnMoveFigure(new ITableListener.MoveFigureResult(from, to, path));
+		fireOnMoveFigure(new ITableListener.MoveFigureResult(path));
 	}
 
 	private void fireOnMoveFigure(ITableListener.MoveFigureResult result) {
@@ -135,22 +142,15 @@ private boolean isValidMove(Point from, Point to) {
 		int figureIndex = randomRange(0, figures.length);
 		Point point = findNearestFreeCell(x, y);
 		Figure figure = figures[figureIndex];
-		execute(new CommandAddFigure(this, point, figure));
+		doAction(new ActionAddFigure(point, figure));
 	}
 
 	private int randomRange(int from, int to) {
-		return from + random.nextInt(to - from);
+		return random.range(from, to);
 	}
 
 	private void addFigure(Point point, Figure figure) {
 		tableModel.getCell(point.x, point.y).figure = figure;
-
-		byte[] action = new byte[4];
-		action[0] = (byte) Action.Add.ordinal();
-		action[1] = (byte) point.x;
-		action[2] = (byte) point.y;
-		action[3] = (byte) figure.ordinal();
-
 		fireOnAddFigure(point, figure);
 	}
 
@@ -215,9 +215,9 @@ private boolean isValidMove(Point from, Point to) {
 			for (int j = 0; j < rowCount(); j++) {
 				if (burnTable[i][j]) {
 					Point point = new Point(i, j);
-					execute(new CommandRemoveFigure(this, point, tableModel.getCell(i, j).figure));
+					doAction(new ActionRemoveFigure(point, tableModel.getCell(i, j).figure));
 					if (!tableModel.getCell(i, j).opened) {
-						execute(new CommandChangeCellOpened(this, point, true));
+						doAction(new ActionOpenCell(point));
 					}
 				}
 			}
@@ -281,16 +281,6 @@ private boolean isValidMove(Point from, Point to) {
 		TableCell tableCell = tableModel.getCell(p.x, p.y);
 		if (tableCell.opened != opened) {
 			tableCell.opened = opened;
-
-			byte[] action = new byte[3];
-			if (opened) {
-				action[0] = (byte) Action.Open.ordinal();
-			} else {
-				action[0] = (byte) Action.Close.ordinal();
-			}
-			action[1] = (byte) p.x;
-			action[2] = (byte) p.y;
-
 			fireOnCellOpenedChanged(new ITableListener.CellOpenChangedResult(p, opened));
 		}
 	}
@@ -305,12 +295,6 @@ private boolean isValidMove(Point from, Point to) {
 		Figure figure = tableModel.getCell(p.x, p.y).figure;
 		tableModel.getCell(p.x, p.y).figure = null;
 
-		byte[] action = new byte[4];
-		action[0] = (byte) Action.Remove.ordinal();
-		action[1] = (byte) p.x;
-		action[2] = (byte) p.y;
-		action[3] = (byte) figure.ordinal();
-
 		fireOnRemoveFigure(new ITableListener.RemoveFigureResult(p, figure));
 	}
 
@@ -318,6 +302,10 @@ private boolean isValidMove(Point from, Point to) {
 		for (ITableListener listener : listeners) {
 			listener.onRemoveFigure(result);
 		}
+	}
+
+	private void setSeed(long seed) {
+		random.setSeed(seed);
 	}
 
 	public void debugPreWin() {
@@ -353,11 +341,11 @@ private boolean isValidMove(Point from, Point to) {
 	}
 
 	public void DebugMove(Point from, Point to) {
-		moveFigure(from, to, new Point[]{from, to});
+		moveFigure(new Point[]{from, to});
 	}
 
 	private void win() {
-		clearCommands();
+		clearHistory();
 		fireOnWin();
 	}
 
@@ -368,7 +356,7 @@ private boolean isValidMove(Point from, Point to) {
 	}
 
 	private void lose() {
-		clearCommands();
+		clearHistory();
 		fireOnLose();
 	}
 
@@ -376,14 +364,6 @@ private boolean isValidMove(Point from, Point to) {
 		for (ITableListener listener : listeners) {
 			listener.onLose();
 		}
-	}
-
-	public void checkOnWin() {
-		if (isWin()) win();
-	}
-
-	public void checkOnLose() {
-		if (isLose()) lose();
 	}
 
 	private boolean isWin() {
@@ -406,12 +386,6 @@ private boolean isValidMove(Point from, Point to) {
 		return true;
 	}
 
-	private void clearCommands() {
-		qUndo.clear();
-		qRedo.clear();
-		commandStore.clear();
-	}
-
 	private PathFinder.FindPathResult findPath(Point from, Point to) {
 		return pathFinder.find(tableModel, from, to);
 	}
@@ -423,6 +397,12 @@ private boolean isValidMove(Point from, Point to) {
 	public void SetTable(TableModel tableModel) {
 		this.tableModel = tableModel;
 		burnTable = new boolean[columnCount()][rowCount()];
+	}
+
+	public void setHistory(ActionHistory history) {
+		this.history = history;
+		setSeed(history.currentSeed);
+		System.out.println(history.currentSeed);
 	}
 
 	public void makeFirstMove() {
@@ -449,156 +429,92 @@ private boolean isValidMove(Point from, Point to) {
 		}
 	}
 
-	private void execute(ICommand command) {
-		qRedo.clear();
-		commandStore.add(command);
-		command.execute();
+	private void doAction(GameAction action) {
+		execute(action);
+		history.push(action);
+	}
+
+	private void execute(GameAction action) {
+		switch (action.type) {
+			case AddFigure:
+				ActionAddFigure actionAddFigure = (ActionAddFigure) action;
+				addFigure(actionAddFigure.point, actionAddFigure.figure);
+				break;
+			case RemoveFigure:
+				ActionRemoveFigure actionRemoveFigure = (ActionRemoveFigure) action;
+				removeFigure(actionRemoveFigure.point);
+				break;
+			case MoveFigure:
+				ActionMove actionMove = (ActionMove) action;
+				moveFigure(actionMove.path);
+				break;
+			case OpenCell:
+				ActionOpenCell actionOpenCell = (ActionOpenCell) action;
+				setCellOpened(actionOpenCell.point, true);
+				break;
+			case StepBegin:
+				ActionStepBegin actionStepBegin = (ActionStepBegin) action;
+				List<GameAction> actions = actionStepBegin.actions;
+				for (int i = 0; i < actions.size(); i++) {
+					execute(actions.get(i));
+				}
+				setSeed(actionStepBegin.endSeed);
+				break;
+		}
+	}
+
+	private void cancel(GameAction action) {
+		switch (action.type) {
+			case AddFigure:
+				ActionAddFigure actionAddFigure = (ActionAddFigure) action;
+				removeFigure(actionAddFigure.point);
+				break;
+			case RemoveFigure:
+				ActionRemoveFigure actionRemoveFigure = (ActionRemoveFigure) action;
+				addFigure(actionRemoveFigure.point, actionRemoveFigure.figure);
+				break;
+			case MoveFigure: {
+				ActionMove actionMove = (ActionMove) action;
+				Point[] path = actionMove.path;
+				Point[] reversed = new Point[path.length];
+				System.arraycopy(path, 0, reversed, 0, path.length);
+				for (int i = 0; i < reversed.length / 2; i++) {
+					Point temp = reversed[i];
+					reversed[i] = reversed[reversed.length - i - 1];
+					reversed[reversed.length - i - 1] = temp;
+				}
+				moveFigure(reversed);
+			}
+			break;
+			case OpenCell:
+				ActionOpenCell actionOpenCell = (ActionOpenCell) action;
+				setCellOpened(actionOpenCell.point, false);
+				break;
+			case StepBegin: {
+				ActionStepBegin actionStepBegin = (ActionStepBegin) action;
+				List<GameAction> actions = actionStepBegin.actions;
+				for (int i = actions.size() - 1; i >= 0; i--) {
+					cancel(actions.get(i));
+				}
+				setSeed(actionStepBegin.beginSeed);
+			}
+			break;
+		}
 	}
 
 	public void undo() {
-		if (qUndo.size() > 0) {
-			ICommand command = qUndo.pop();
-			qRedo.push(command);
-			command.cancel();
+		if (!history.isUndoEmpty()) {
+			cancel(history.popUndo());
 		}
 	}
 
 	public void redo() {
-		if (qRedo.size() > 0) {
-			ICommand command = qRedo.pop();
-			qUndo.push(command);
-			command.execute();
+		if (!history.isRedoEmpty()) {
+			execute(history.popRedo());
 		}
 	}
 
 	private void clearHistory() {
-		qRedo.clear();
-		qUndo.clear();
-	}
-
-	private abstract class TcaCommand implements ICommand {
-		public ActionType type;
-
-		private TcaCommand(ActionType type) {
-			this.type = type;
-		}
-	}
-
-	private abstract class TcCommand extends TcaCommand {
-		protected TableController tableController;
-
-		private TcCommand(TableController tableController, ActionType type) {
-			super(type);
-			this.tableController = tableController;
-		}
-	}
-
-	private class CommandAddFigure extends TcCommand {
-		public Figure figure;
-		public Point point;
-
-		public CommandAddFigure(TableController tableController, Point point, Figure figure) {
-			super(tableController, ActionType.AddFigure);
-			this.point = point;
-			this.figure = figure;
-		}
-
-		public void execute() {
-			tableController.addFigure(point, figure);
-		}
-
-		public void cancel() {
-			tableController.removeFigure(point);
-		}
-	}
-
-	private class CommandRemoveFigure extends TcCommand {
-		private Figure figure;
-		private Point point;
-
-		public CommandRemoveFigure(TableController tableController, Point point, Figure figure) {
-			super(tableController, ActionType.RemoveFigure);
-			this.point = point;
-			this.figure = figure;
-		}
-
-		public void execute() {
-			tableController.removeFigure(point);
-		}
-
-		public void cancel() {
-			tableController.addFigure(point, figure);
-		}
-	}
-
-	private class CommandChangeCellOpened extends TcCommand {
-		private Point point;
-		private boolean opened;
-
-		public CommandChangeCellOpened(TableController tableController, Point point, boolean opened) {
-			super(tableController, ActionType.OpenCell);
-			this.point = point;
-			this.opened = opened;
-		}
-
-		public void execute() {
-			tableController.setCellOpened(point, opened);
-		}
-
-		public void cancel() {
-			tableController.setCellOpened(point, !opened);
-		}
-	}
-
-	private class CommandMoveFigure extends TcCommand {
-		private Point from, to;
-		private Point[] path;
-
-		public CommandMoveFigure(TableController tableController, Point from, Point to, Point[] path) {
-			super(tableController, ActionType.MoveFigure);
-			this.from = from;
-			this.to = to;
-			this.path = path;
-		}
-
-		public void execute() {
-			tableController.moveFigure(from, to, path);
-		}
-
-		public void cancel() {
-			Point[] reversed = new Point[path.length];
-			System.arraycopy(path, 0, reversed, 1, path.length - 1);
-			reversed[0] = from;
-			for (int i = 0; i < reversed.length / 2; i++) {
-				Point temp = reversed[i];
-				reversed[i] = reversed[reversed.length - i - 1];
-				reversed[reversed.length - i - 1] = temp;
-			}
-			tableController.moveFigure(to, from, reversed);
-		}
-	}
-
-	private class CommandSet extends TcaCommand {
-		private TcCommand[] commands;
-
-		public CommandSet(Collection<ICommand> commands) {
-			super(ActionType.StepBegin);
-			this.commands = new TcCommand[commands.size()];
-			commands.toArray(this.commands);
-		}
-
-		public void execute() {
-			for (int i = 0; i < commands.length; i++) {
-				commands[i].execute();
-			}
-		}
-
-		public void cancel() {
-			for (int i = commands.length - 1; i >= 0; i--) {
-				commands[i].cancel();
-			}
-		}
+		history.clear();
 	}
 }
-
-
