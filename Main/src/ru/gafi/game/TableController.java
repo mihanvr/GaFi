@@ -5,7 +5,6 @@ import ru.gafi.game.actions.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 /**
  * User: Michael
@@ -23,7 +22,7 @@ public class TableController {
 
 	public TableController() {
 		pathFinder = new PathFinder();
-		random = new RNG(0);
+		random = new RNG();
 	}
 
 	private int columnCount() {
@@ -402,7 +401,6 @@ public class TableController {
 	public void setHistory(ActionHistory history) {
 		this.history = history;
 		setSeed(history.currentSeed);
-		System.out.println(history.currentSeed);
 	}
 
 	public void makeFirstMove() {

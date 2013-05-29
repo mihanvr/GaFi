@@ -10,8 +10,13 @@ package ru.gafi.game;
  * Pseudo-random number generator by method George Marsaglia
  */
 public class RNG {
+	private final static long DEF = 42;
 	private int m_w;
 	private int m_z;
+
+	public RNG() {
+		this(DEF);
+	}
 
 	public RNG(long seed) {
 		setSeed(seed);
@@ -25,9 +30,7 @@ public class RNG {
 	}
 
 	public long getSeed() {
-		long l = m_z & (((long) m_w) << 32);
-		System.out.printf("%s %s %s%n", m_z, m_w, l);
-		return m_z & (((long) m_w) << 32);
+		return ((long) m_z) | (((long) m_w) << 32);
 	}
 
 	public int nextInt() {
