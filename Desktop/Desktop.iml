@@ -9,6 +9,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Main" />
     <orderEntry type="library" exported="" name="Desktop libs" level="project" />
+    <orderEntry type="library" name="Desktop libs" level="project" />
   </component>
 </module>
 

@@ -18,6 +18,7 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="Main" />
     <orderEntry type="library" name="Android libs" level="project" />
+    <orderEntry type="library" name="Android libs" level="project" />
   </component>
 </module>
 
