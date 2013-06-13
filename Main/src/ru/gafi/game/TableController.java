@@ -425,7 +425,9 @@ public class TableController {
 	}
 
 	public void makeFirstMove() {
+		fireOnStepBegin();
 		addRandomFigures(rowCount() * columnCount() / 2);
+		fireOnStepFinish();
 		burnCompleteFigures();
 	}
 
