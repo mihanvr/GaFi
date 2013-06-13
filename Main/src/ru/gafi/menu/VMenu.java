@@ -9,7 +9,6 @@ import ru.gafi.common.Util;
 import ru.gafi.task.TaskManager;
 
 /**
- * Created with IntelliJ IDEA.
  * User: Michael
  * Date: 20.05.13
  * Time: 19:22
@@ -20,10 +19,14 @@ public class VMenu extends Group {
 	private MyButton btnUndo;
 	private MyButton btnRedo;
 	private MyButton btnExit;
+	private MyButton btnDemoStart;
+	private MyButton btnDemoCancel;
 	private Actor background;
 	private float buttonSize;
 	private float gap;
 //	private final float defScale;
+	private Group gameGroup;
+	private Group demoGroup;
 
 	public VMenu(Skin skin, Main main, Settings settings, TaskManager taskManager) {
 
@@ -39,18 +42,26 @@ public class VMenu extends Group {
 				skin.getDrawable("menu.button.reset"),
 				skin.getSprite("menu.button.reset.icon"), buttonSize);
 		btnUndo = new MyButton(taskManager,
-						skin.getDrawable("menu.button.undo"),
-						skin.getSprite("menu.button.undo.icon"), buttonSize);
+				skin.getDrawable("menu.button.undo"),
+				skin.getSprite("menu.button.undo.icon"), buttonSize);
 		btnRedo = new MyButton(taskManager,
-						skin.getDrawable("menu.button.redo"),
-						skin.getSprite("menu.button.redo.icon"), buttonSize);
+				skin.getDrawable("menu.button.redo"),
+				skin.getSprite("menu.button.redo.icon"), buttonSize);
+		btnDemoStart = new MyButton(taskManager,
+				skin.getDrawable("menu.button.demo"),
+				skin.getSprite("menu.button.demo.icon"), buttonSize);
+		btnDemoCancel = new MyButton(taskManager,
+				skin.getDrawable("menu.button.democ"),
+				skin.getSprite("menu.button.democ.icon"), buttonSize);
 		btnExit = new MyButton(taskManager,
-						skin.getDrawable("menu.button.exit"),
-						skin.getSprite("menu.button.exit.icon"), buttonSize);
+				skin.getDrawable("menu.button.exit"),
+				skin.getSprite("menu.button.exit.icon"), buttonSize);
 
 		btnReset.addListener(resetListener(main));
 		btnUndo.addListener(undoListener(main));
 		btnRedo.addListener(redoListener(main));
+		btnDemoStart.addListener(demoStartListener(main));
+		btnDemoCancel.addListener(demoStopListener(main));
 		btnExit.addListener(exitListener(main));
 		btnStretch.addListener(stretchListener(settings));
 
@@ -63,14 +74,26 @@ public class VMenu extends Group {
 			}
 		});
 
+		gameGroup = new Group();
+		demoGroup = new Group();
+
 		addActor(background);
-		addActor(btnReset);
-		addActor(btnStretch);
-		addActor(btnUndo);
-		addActor(btnRedo);
-		addActor(btnExit);
+		gameGroup.addActor(btnReset);
+		gameGroup.addActor(btnStretch);
+		gameGroup.addActor(btnUndo);
+		gameGroup.addActor(btnRedo);
+		gameGroup.addActor(btnDemoStart);
+		gameGroup.addActor(btnExit);
+		demoGroup.addActor(btnDemoCancel);
+		addActor(gameGroup);
+		addActor(demoGroup);
 
 		Util.setTransform(this, false);
+	}
+
+	public void setDemoMode(boolean value) {
+		demoGroup.setVisible(value);
+		gameGroup.setVisible(!value);
 	}
 
 	private EventListener undoListener(final Main main) {
@@ -88,6 +111,26 @@ public class VMenu extends Group {
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
 				main.redo();
+				return true;
+			}
+		};
+	}
+
+	private EventListener demoStartListener(final Main main) {
+		return new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				main.startDemo();
+				return true;
+			}
+		};
+	}
+
+	private EventListener demoStopListener(final Main main) {
+		return new InputListener() {
+			@Override
+			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
+				main.stopDemo();
 				return true;
 			}
 		};
@@ -142,6 +185,8 @@ public class VMenu extends Group {
 		setPositionFromLeft(btnRedo, 1);
 		setPositionToCenter(btnReset);
 		setPositionToCenterBetween(btnStretch, btnRedo.getX() + buttonSize, btnReset.getX());
+		setPositionToCenterBetween(btnDemoStart, btnReset.getX() + buttonSize, btnExit.getX());
+		setPositionToCenterBetween(btnDemoCancel, btnReset.getX() + buttonSize, btnExit.getX());
 	}
 
 	private void setPositionFromLeft(Actor actor, int index) {

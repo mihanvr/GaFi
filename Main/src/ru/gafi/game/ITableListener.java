@@ -28,6 +28,10 @@ public interface ITableListener {
 
 	void onClearTable();
 
+	void onStepBegin();
+
+	void onStepFinish();
+
 	public class MoveFigureResult {
 		public Point[] path;
 

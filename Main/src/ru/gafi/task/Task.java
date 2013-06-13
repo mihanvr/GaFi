@@ -1,17 +1,9 @@
 package ru.gafi.task;
 
-public abstract class Task {
-	private boolean _finished;
+public interface Task {
+	public void start();
 
-	public abstract void start();
+	public void update(float dt);
 
-	public abstract void update(float dt);
-
-	protected void finish() {
-		_finished = true;
-	}
-
-	public boolean isFinished() {
-		return _finished;
-	}
+	public boolean isFinished();
 }

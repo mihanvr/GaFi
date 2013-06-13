@@ -1,13 +1,12 @@
 package ru.gafi.animation;
 
-import ru.gafi.task.Task;
+import ru.gafi.task.CancelableTask;
 import ru.gafi.task.TaskManager;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created with IntelliJ IDEA.
  * User: Michael
  * Date: 20.05.13
  * Time: 20:16
@@ -34,7 +33,7 @@ public class SAnimation {
 		_playingClip = getClip(name);
 		if (_playingClip != null) {
 			_playingClip.reset();
-			taskManager.startTask(updater = new Updater());
+			taskManager.addParallelTask(updater = new Updater());
 			return true;
 		}
 		return false;
@@ -43,7 +42,7 @@ public class SAnimation {
 	public void stop() {
 		_playingClip = null;
 		if (updater != null) {
-			updater.finish();
+			updater.stop();
 		}
 	}
 
@@ -53,10 +52,12 @@ public class SAnimation {
 			if (!_playingClip.isPlaying()) {
 				stop();
 			}
+		} else {
+			stop();
 		}
 	}
 
-	private class Updater extends Task {
+	private class Updater extends CancelableTask {
 
 		@Override
 		public void start() {
@@ -64,16 +65,8 @@ public class SAnimation {
 		}
 
 		@Override
-		public void finish() {
-			super.finish();
-		}
-
-		@Override
 		public void update(float dt) {
 			SAnimation.this.update(dt);
-			if (_playingClip == null) {
-				finish();
-			}
 		}
 	}
 }

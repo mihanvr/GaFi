@@ -10,100 +10,114 @@ close
   orig: 122, 122
   offset: 0, 0
   index: -1
-f1
+demo_start
   rotate: false
   xy: 1, 264
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-f2
+demo_stop
   rotate: false
   xy: 125, 388
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-f3
+f1
   rotate: false
   xy: 1, 140
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-f4
+f2
   rotate: false
   xy: 125, 264
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-f5
+f3
   rotate: false
   xy: 249, 388
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-open
+f4
   rotate: false
   xy: 1, 16
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-power_off
+f5
   rotate: false
   xy: 125, 140
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-redo
+open
   rotate: false
   xy: 249, 264
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-reset
+power_off
   rotate: false
   xy: 373, 388
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-select
+redo
   rotate: false
   xy: 125, 16
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-stretch_off
+reset
   rotate: false
   xy: 249, 140
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-stretch_on
+select
   rotate: false
   xy: 373, 264
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
-undo
+stretch_off
+  rotate: false
+  xy: 497, 388
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
+stretch_on
   rotate: false
   xy: 249, 16
   size: 122, 122
   orig: 122, 122
   offset: 0, 0
   index: -1
+undo
+  rotate: false
+  xy: 373, 140
+  size: 122, 122
+  orig: 122, 122
+  offset: 0, 0
+  index: -1
 table_frame
   rotate: false
-  xy: 373, 208
+  xy: 497, 332
   size: 54, 54
   split: 27, 26, 27, 26
   orig: 54, 54
@@ -111,7 +125,7 @@ table_frame
   index: -1
 button_frame
   rotate: false
-  xy: 373, 170
+  xy: 621, 474
   size: 36, 36
   split: 13, 13, 13, 13
   orig: 36, 36

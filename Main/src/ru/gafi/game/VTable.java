@@ -20,12 +20,12 @@ import ru.gafi.common.Util;
 import ru.gafi.common.setters.SvsPosition2;
 import ru.gafi.common.setters.SvsScale;
 import ru.gafi.common.setters.SvsSize2;
-import ru.gafi.task.Task;
-import ru.gafi.task.TaskManager;
+import ru.gafi.task.*;
 
 import java.util.*;
 
 import static ru.gafi.common.Util.toFloatArray;
+import static ru.gafi.task.TaskUtils.toArray;
 
 /**
  * User: Michael
@@ -33,7 +33,7 @@ import static ru.gafi.common.Util.toFloatArray;
  * Time: 19:23
  */
 public class VTable extends AnimatedActor implements ITableListener {
-	private final TaskManager taskManager;
+	protected final TaskManager taskManager;
 	private final float MAX_TIME_TO_MOVE = 0.3f;
 	private final int CELLS_COUNT_IN_SECOND = 10;
 	private float cellSize;
@@ -52,12 +52,12 @@ public class VTable extends AnimatedActor implements ITableListener {
 	private float _scaleFactor;
 	private boolean _stretch;
 	private TableController _tableController;
-	private TaskListActions _taskListActions;
 	private Point selectedPoint = new Point(-1, -1);
 	private VFigure selectedVFigure;
 	private TableModel tableModel;
 	private Sprite spriteClosedCell;
 	private float defScale;
+	private List<VTableAction> groupActions = new ArrayList<>();
 
 	public VTable(Skin skin, Settings settings, TaskManager taskManager) {
 		super(taskManager);
@@ -122,11 +122,11 @@ public class VTable extends AnimatedActor implements ITableListener {
 		clearGame();
 		updateTableSize(false);
 		initFromModel();
-		unselect();
+		unselectPoint();
 	}
 
 	public void onAddFigure(Point point, Figure figure) {
-		doAction(new ActionAddFigure(this, point, figure));
+		doAction(new ActionAddFigure(point, figure));
 	}
 
 	public void onMoveFailure() {
@@ -138,8 +138,11 @@ public class VTable extends AnimatedActor implements ITableListener {
 	}
 
 	public void onMoveFigure(MoveFigureResult result) {
-		unselect();
-		doAction(new ActionMoveFigure(this, result.path));
+		doAction(new ActionMoveFigure(result.path));
+	}
+
+	private void onStartMove() {
+		unselectPoint();
 	}
 
 	public void onWin() {
@@ -149,15 +152,25 @@ public class VTable extends AnimatedActor implements ITableListener {
 	}
 
 	public void onRemoveFigure(RemoveFigureResult result) {
-		doAction(new ActionRemoveFigure(this, result.point));
+		doAction(new ActionRemoveFigure(result.point));
 	}
 
 	public void onCellOpenedChanged(CellOpenChangedResult result) {
 		if (result.opened) {
-			doAction(new ActionOpenCell(this, result.point));
+			doAction(new ActionOpenCell(result.point));
 		} else {
-			doAction(new ActionCloseCell(this, result.point));
+			doAction(new ActionCloseCell(result.point));
 		}
+	}
+
+	@Override
+	public void onStepFinish() {
+		flushActions();
+	}
+
+	@Override
+	public void onStepBegin() {
+		flushActions();
 	}
 
 	public void onClearTable() {
@@ -171,15 +184,14 @@ public class VTable extends AnimatedActor implements ITableListener {
 			for (int j = 0; j < tableModel.rowCount(); j++) {
 				TableCell tableCell = tableModel.getCell(i, j);
 				if (tableCell.figure != null) {
-					actionsRemove.add(new ActionRemoveFigure(this, new Point(i, j)));
+					actionsRemove.add(new ActionRemoveFigure(new Point(i, j)));
 				}
 				if (tableCell.opened) {
-					actionsClose.add(new ActionCloseCell(this, new Point(i, j)));
+					actionsClose.add(new ActionCloseCell(new Point(i, j)));
 				}
 			}
 		}
 		taskManager.addTaskInQueue(new TaskClearTable(actionsRemove, actionsClose));
-		_taskListActions = null;
 	}
 
 	public VFigure moveFigure(Point from, Point to) {
@@ -195,7 +207,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 		_tableController.addListener(this);
 	}
 
-	private void initFromModel() {
+	protected void initFromModel() {
 		for (int i = 0; i < columnCount(); i++) {
 			for (int j = 0; j < rowCount(); j++) {
 				TableCell tableCell = tableModel.getCell(i, j);
@@ -250,7 +262,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 
 	}
 
-	private void updateTableSize(boolean animated) {
+	protected void updateTableSize(boolean animated) {
 		createBackground();
 		updateTableView(animated);
 	}
@@ -280,10 +292,10 @@ public class VTable extends AnimatedActor implements ITableListener {
 
 		if (animated) {
 			final float TIME = 0.3f;
-			taskManager.startTask(new TrackTask(getTrackChangePosition(tableFrame, TIME, framePosition)));
-			taskManager.startTask(new TrackTask(getTrackChangeSize(tableFrame, TIME, frameSize)));
-			taskManager.startTask(new TrackTask(getTrackChangePosition(groupTable, TIME, tablePosition)));
-			taskManager.startTask(new TrackTask(getTrackChangeScale(groupTable, TIME, _scaleFactor)));
+			taskManager.addParallelTask(new TrackTask(getTrackChangePosition(tableFrame, TIME, framePosition)));
+			taskManager.addParallelTask(new TrackTask(getTrackChangeSize(tableFrame, TIME, frameSize)));
+			taskManager.addParallelTask(new TrackTask(getTrackChangePosition(groupTable, TIME, tablePosition)));
+			taskManager.addParallelTask(new TrackTask(getTrackChangeScale(groupTable, TIME, _scaleFactor)));
 		} else {
 			setPosition(tableFrame, framePosition);
 			setSize(tableFrame, frameSize);
@@ -358,7 +370,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 		mapFigures.remove(point);
 		vFigure.getParent().removeActor(vFigure);
 		if (point.equals(selectedPoint)) {
-			unselect();
+			unselectPoint();
 		}
 	}
 
@@ -390,7 +402,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 				if (selectedVFigure != null) {
 					animateMove(selectedVFigure, getPointPosition(selectedPoint));
 				}
-				doAction(new ActionSelectFigure(this, point));
+				doAction(new ActionSelectFigure(point));
 			} else if (selectedPoint.x >= 0) {
 				_tableController.tryMove(selectedPoint, point);
 			}
@@ -404,7 +416,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 					animateMove(selectedVFigure, getPointPosition(selectedPoint));
 				} else {
 					if (Gdx.input.isKeyPressed(Input.Keys.SHIFT_LEFT)) {
-						_tableController.DebugMove(selectedPoint, pointUnderCursor);
+						_tableController.debugMove(selectedPoint, pointUnderCursor);
 					} else {
 						_tableController.tryMove(selectedPoint, pointUnderCursor);
 					}
@@ -447,7 +459,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 		}
 
 		STrack track = new STrack(timeCurve, new SvsPosition2(actor));
-		taskManager.startTask(new TrackTask(track));
+		taskManager.addParallelTask(new TrackTask(track));
 		return time;
 	}
 
@@ -459,20 +471,21 @@ public class VTable extends AnimatedActor implements ITableListener {
 		return new Point(-1, -1);
 	}
 
-	private void selectPoint(Point point) {
-		unselect();
+	protected void selectPoint(Point point) {
+		unselectPoint();
 		selectedCell.setVisible(true);
 		selectedPoint = new Point(point.x, point.y);
 		setToCell(selectedCell, point);
 		VFigure vFigure = getVFigure(point);
 		selectedVFigure = vFigure;
 
-		bringToFrontVFigure(selectedVFigure);
-
-		vFigure.playAnimationSelect();
+		if (vFigure != null) {
+			bringToFrontVFigure(selectedVFigure);
+			vFigure.playAnimationSelect();
+		}
 	}
 
-	private void unselect() {
+	protected void unselectPoint() {
 		selectedPoint = new Point(-1, -1);
 		selectedCell.setVisible(false);
 		selectedVFigure = null;
@@ -499,14 +512,22 @@ public class VTable extends AnimatedActor implements ITableListener {
 	}
 
 	private void doAction(VTableAction action) {
-		if (_taskListActions == null
-				|| _taskListActions.isFinished()
-				|| _taskListActions.inProgress
-				|| !IsCompatibility(_taskListActions.lastActionType(), action.actionType)) {
-			_taskListActions = new TaskListActions();
-			taskManager.addTaskInQueue(_taskListActions);
+		if (action.actionType == ActionType.SelectFigure) {
+			taskManager.addTaskInQueue(action);
+			return;
 		}
-		_taskListActions.addAction(action);
+
+		if (!groupActions.isEmpty() && !IsCompatibility(groupActions.get(groupActions.size() - 1).actionType, action.actionType)) {
+			flushActions();
+		}
+		groupActions.add(action);
+	}
+
+	protected void flushActions() {
+		if (!groupActions.isEmpty()) {
+			taskManager.addTaskInQueue(new GroupTask(toArray(groupActions)));
+			groupActions.clear();
+		}
 	}
 
 	private boolean IsCompatibility(ActionType at0, ActionType at1) {
@@ -543,30 +564,30 @@ public class VTable extends AnimatedActor implements ITableListener {
 		private Figure figure;
 		private Point point;
 
-		public ActionAddFigure(VTable vtable, Point point, Figure figure) {
-			super(vtable, ActionType.AddFigure);
+		public ActionAddFigure(Point point, Figure figure) {
+			super(ActionType.AddFigure);
 			this.point = point;
 			this.figure = figure;
 		}
 
 		public void onStart() {
-			VFigure vFigure = vtable.addFigure(point, figure);
-			timeDuration = vFigure.playAnimationShow();
+			VFigure vFigure = VTable.this.addFigure(point, figure);
+			setTimeDuration(vFigure.playAnimationShow());
 		}
 	}
 
 	private class ActionCloseCell extends VTableAction {
 		private Point point;
 
-		public ActionCloseCell(VTable vtable, Point point) {
-			super(vtable, ActionType.CloseCell);
+		public ActionCloseCell(Point point) {
+			super(ActionType.CloseCell);
 			this.point = point;
 		}
 
 		public void onStart() {
-			VCell vCell = vtable.getVCell(point);
-			vtable.setCellState(point, false);
-			timeDuration = vCell.playAnimationClose();
+			VCell vCell = VTable.this.getVCell(point);
+			VTable.this.setCellState(point, false);
+			setTimeDuration(vCell.playAnimationClose());
 		}
 	}
 
@@ -576,169 +597,158 @@ public class VTable extends AnimatedActor implements ITableListener {
 		private Point to;
 		private VFigure vFigure;
 
-		public ActionMoveFigure(VTable vtable, Point[] path) {
-			super(vtable, ActionType.MoveFigure);
+		public ActionMoveFigure(Point[] path) {
+			super(ActionType.MoveFigure);
 			from = path[0];
-			to = path[path.length-1];
+			to = path[path.length - 1];
 			this.path = path;
 		}
 
 		public void onStart() {
-			vFigure = vtable.getVFigure(from);
-			float distanceToTarget = Vector2.tmp.set(vtable.getPosition(vFigure)).sub(vtable.getPointPosition(to)).len();
+			vFigure = VTable.this.getVFigure(from);
+			float distanceToTarget = Vector2.tmp.set(VTable.this.getPosition(vFigure)).sub(VTable.this.getPointPosition(to)).len();
 
 			Vector2[] checkPoints;
-			Vector2 firstPoint = vtable.getPosition(vFigure);
-			if (path == null || distanceToTarget <= vtable.cellSize) {
+			Vector2 firstPoint = VTable.this.getPosition(vFigure);
+			if (path == null || distanceToTarget <= VTable.this.cellSize) {
 				checkPoints = new Vector2[]{
-						firstPoint, vtable.getPointPosition(to)
+						firstPoint, VTable.this.getPointPosition(to)
 				};
 			} else {
 				checkPoints = new Vector2[path.length];
 				for (int i = 0; i < path.length; i++) {
-					checkPoints[i] = vtable.getPointPosition(path[i]);
+					checkPoints[i] = VTable.this.getPointPosition(path[i]);
 				}
 			}
-			timeDuration = vtable.animateMove(vFigure, checkPoints);
+			setTimeDuration(VTable.this.animateMove(vFigure, checkPoints));
 
-			vtable.bringToFrontVFigure(vFigure);
+			VTable.this.onStartMove();
+			VTable.this.bringToFrontVFigure(vFigure);
 		}
 
 		public void onFinish() {
-			vtable.moveFigure(from, to);
+			VTable.this.moveFigure(from, to);
 		}
 	}
 
 	private class ActionOpenCell extends VTableAction {
 		private Point point;
 
-		public ActionOpenCell(VTable vtable, Point point) {
-			super(vtable, ActionType.OpenCell);
+		public ActionOpenCell(Point point) {
+			super(ActionType.OpenCell);
 			this.point = point;
 		}
 
 		public void onStart() {
-			VCell vCell = vtable.getVCell(point);
-			timeDuration = vCell.playAnimationOpen();
+			VCell vCell = VTable.this.getVCell(point);
+			setTimeDuration(vCell.playAnimationOpen());
 		}
 
 		public void onFinish() {
-			vtable.setCellState(point, true);
+			VTable.this.setCellState(point, true);
 		}
 	}
 
 	private class ActionRemoveFigure extends VTableAction {
 		private Point point;
 
-		public ActionRemoveFigure(VTable vtable, Point point) {
-			super(vtable, ActionType.RemoveFigure);
+		public ActionRemoveFigure(Point point) {
+			super(ActionType.RemoveFigure);
 			this.point = point;
 		}
 
 		public void onStart() {
-			VFigure vFigure = vtable.getVFigure(point);
-			timeDuration = vFigure.playAnimationHide();
+			VFigure vFigure = VTable.this.getVFigure(point);
+			setTimeDuration(vFigure.playAnimationHide());
 		}
 
 		public void onFinish() {
-			vtable.removeFigure(point);
+			VTable.this.removeFigure(point);
 		}
 	}
 
-	private class ActionSelectFigure extends VTableAction {
+	protected class ActionSelectFigure extends VTableAction {
 		private Point point;
 
-		public ActionSelectFigure(VTable vtable, Point point) {
-			super(vtable, ActionType.SelectFigure);
+		public ActionSelectFigure(Point point) {
+			super(ActionType.SelectFigure);
 			this.point = point;
 		}
 
 		public void onStart() {
-			vtable.selectPoint(point);
+			VTable.this.selectPoint(point);
 		}
 	}
 
-	private class TaskClearTable extends Task {
-		private TaskListActions actionsCloseCell;
-		private TaskListActions actionsRemoveFigures;
+	private class TaskClearTable implements Task {
+		private ListTask listTask;
 
 		public TaskClearTable(Collection<VTableAction> removeFigures, Collection<VTableAction> closeCells) {
-			actionsRemoveFigures = new TaskListActions();
-			actionsCloseCell = new TaskListActions();
+			List<Task> actionsRemoveFigures = new ArrayList<>();
+			List<Task> actionsCloseCell = new ArrayList<>();
 			for (VTableAction action : removeFigures) {
-				actionsRemoveFigures.addAction(action);
+				actionsRemoveFigures.add(action);
 			}
 			for (VTableAction action : closeCells) {
-				actionsCloseCell.addAction(action);
+				actionsCloseCell.add(action);
 			}
+			listTask = new ListTask(
+					new GroupTask(toArray(actionsRemoveFigures)),
+					new GroupTask(toArray(actionsCloseCell))
+			);
 		}
 
 		public void start() {
-			actionsRemoveFigures.start();
+			listTask.start();
 		}
 
 		public void update(float dt) {
-			if (!actionsRemoveFigures.isFinished()) {
-				actionsRemoveFigures.update(dt);
-				if (actionsRemoveFigures.isFinished()) {
-					actionsCloseCell.start();
-				}
-			} else {
-				actionsCloseCell.update(dt);
-				if (actionsCloseCell.isFinished()) {
-					finish();
-				}
-			}
+			listTask.update(dt);
+		}
+
+		@Override
+		public boolean isFinished() {
+			return listTask.isFinished();
 		}
 	}
 
-	private class TaskListActions extends Task {
-		public boolean inProgress;
-		private List<VTableAction> actions = new ArrayList<>();
-		private float timeToFinish;
-
-		public ActionType lastActionType() {
-			return actions.get(actions.size() - 1).actionType;
-		}
-
-		public void start() {
-			for (VTableAction action : actions) {
-				action.onStart();
-				timeToFinish = Math.max(timeToFinish, action.timeDuration);
-			}
-			inProgress = true;
-		}
-
-		public void addAction(VTableAction action) {
-			actions.add(action);
-		}
-
-		public void update(float dt) {
-			timeToFinish -= dt;
-
-			if (timeToFinish <= 0) {
-				for (VTableAction action : actions) {
-					action.onFinish();
-				}
-				finish();
-			}
-		}
-	}
-
-	class VTableAction {
+	abstract class VTableAction extends SimpleTask {
 		public ActionType actionType;
-		public float timeDuration;
-		protected VTable vtable;
+		private float timeDuration;
+		private float timeLeft;
 
-		public VTableAction(VTable vtable, ActionType actionType) {
-			this.vtable = vtable;
+		public VTableAction(ActionType actionType) {
 			this.actionType = actionType;
 		}
 
-		public void onStart() {
+		@Override
+		public boolean isFinished() {
+			return timeLeft >= timeDuration;
 		}
+
+		@Override
+		public void update(float dt) {
+			timeLeft += dt;
+			if (timeLeft >= timeDuration) {
+				onFinish();
+				finish();
+			}
+		}
+
+		@Override
+		public void start() {
+			timeLeft = 0;
+			onStart();
+		}
+
+		protected void setTimeDuration(float value) {
+			timeDuration = value;
+		}
+
+		public abstract void onStart();
 
 		public void onFinish() {
 		}
+
 	}
 }

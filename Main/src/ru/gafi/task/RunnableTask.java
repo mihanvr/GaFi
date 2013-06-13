@@ -5,7 +5,7 @@ package ru.gafi.task;
  * Date: 21.05.13
  * Time: 11:22
  */
-public class RunnableTask extends Task {
+public class RunnableTask extends InstantTask {
 
 	private Runnable run;
 
@@ -16,11 +16,6 @@ public class RunnableTask extends Task {
 	@Override
 	public void start() {
 		run.run();
-		finish();
 	}
 
-	@Override
-	public void update(float dt) {
-
-	}
 }

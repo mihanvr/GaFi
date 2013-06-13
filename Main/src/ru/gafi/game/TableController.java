@@ -65,11 +65,13 @@ public class TableController {
 	}
 
 	private void startRecord() {
+		fireOnStepBegin();
 		history.startRecord(random.getSeed());
 	}
 
 	private void stopRecord() {
 		history.stopRecord(random.getSeed());
+		fireOnStepFinish();
 	}
 
 	private boolean isValidMove(Point from, Point to) {
@@ -93,6 +95,18 @@ public class TableController {
 		}
 		return count;
 	}
+
+	private void fireOnStepBegin() {
+			for (ITableListener listener : listeners) {
+				listener.onStepBegin();
+			}
+		}
+
+	private void fireOnStepFinish() {
+			for (ITableListener listener : listeners) {
+				listener.onStepFinish();
+			}
+		}
 
 	private void fireOnMoveFailure() {
 		for (ITableListener listener : listeners) {
@@ -339,8 +353,15 @@ public class TableController {
 		removeFigure(point);
 	}
 
-	public void DebugMove(Point from, Point to) {
+	public void debugMove(Point from, Point to) {
 		moveFigure(new Point[]{from, to});
+	}
+
+	public void debugTryMove(Point from, Point to) {
+		PathFinder.FindPathResult findResult = findPath(from, to);
+		if (findResult.pathFinded) {
+			moveFigure(findResult.path);
+		}
 	}
 
 	private void win() {
@@ -451,12 +472,14 @@ public class TableController {
 				setCellOpened(actionOpenCell.point, true);
 				break;
 			case StepBegin:
+				fireOnStepBegin();
 				ActionStepBegin actionStepBegin = (ActionStepBegin) action;
 				List<GameAction> actions = actionStepBegin.actions;
 				for (int i = 0; i < actions.size(); i++) {
 					execute(actions.get(i));
 				}
 				setSeed(actionStepBegin.endSeed);
+				fireOnStepFinish();
 				break;
 		}
 	}
@@ -489,12 +512,14 @@ public class TableController {
 				setCellOpened(actionOpenCell.point, false);
 				break;
 			case StepBegin: {
+				fireOnStepBegin();
 				ActionStepBegin actionStepBegin = (ActionStepBegin) action;
 				List<GameAction> actions = actionStepBegin.actions;
 				for (int i = actions.size() - 1; i >= 0; i--) {
 					cancel(actions.get(i));
 				}
 				setSeed(actionStepBegin.beginSeed);
+				fireOnStepFinish();
 			}
 			break;
 		}

@@ -25,7 +25,7 @@ public class DesktopStarter {
 
 	private static void packImagesToAtlas() {
 		TexturePacker2.Settings settings = new TexturePacker2.Settings();
-		settings.maxWidth = 512;
+		settings.maxWidth = 1024;
 		settings.maxHeight = 512;
 		TexturePacker2.process(settings, "../raw/800", ".", "800");
 		TexturePacker2.process(settings, "../raw/1280", ".", "1280");

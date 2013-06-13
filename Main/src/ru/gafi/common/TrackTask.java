@@ -1,14 +1,14 @@
 package ru.gafi.common;
 
 import ru.gafi.animation.STrack;
-import ru.gafi.task.Task;
+import ru.gafi.task.SimpleTask;
 
 /**
  * User: Michael
  * Date: 21.05.13
  * Time: 10:48
  */
-public class TrackTask extends Task {
+public class TrackTask extends SimpleTask {
 
 	private float time;
 	private STrack track;

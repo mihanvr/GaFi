@@ -24,8 +24,8 @@ import ru.gafi.common.Util;
 import ru.gafi.common.setters.SvsPosition2;
 import ru.gafi.game.*;
 import ru.gafi.menu.VMenu;
-import ru.gafi.task.DeferredTask;
 import ru.gafi.task.RunnableTask;
+import ru.gafi.task.SimpleTask;
 import ru.gafi.task.TaskManager;
 
 import static ru.gafi.common.Util.intColor;
@@ -40,7 +40,9 @@ public class Main implements ApplicationListener, InputProcessor {
 	private Image backgroundImage;
 	private VMenu vMenu;
 	private VTable vTable;
+	private VDemoTable vDemoTable;
 	private TaskManager taskManager;
+	private TaskManager demoTaskManager;
 	private GameModelDao tableModelDao;
 	private GameModel gameModel;
 	private TableController _tableController;
@@ -49,7 +51,7 @@ public class Main implements ApplicationListener, InputProcessor {
 	private FPSLogger fpsLogger = new FPSLogger();
 	private Skin skin;
 	private float menuHeight;
-	private boolean continuousRedering;
+	private boolean continuousRendering;
 
 	@Override
 	public void create() {
@@ -61,13 +63,30 @@ public class Main implements ApplicationListener, InputProcessor {
 		menuHeight = skin.get("menu.height", Float.class);
 		vMenu = new VMenu(skin, this, settings, taskManager);
 		vTable = new VTable(skin, settings, taskManager);
+		vDemoTable = new VDemoTable(skin, settings, demoTaskManager = new TaskManager(), this);
+		vMenu.setDemoMode(false);
 
 		stage = new Stage();
 		backgroundImage = new Image(skin.getDrawable("background"));
 		backgroundImage.setColor(intColor(20, 115, 154));
 		stage.addActor(backgroundImage);
 		stage.addActor(vTable);
+		stage.addActor(vDemoTable);
 		stage.addActor(vMenu);
+
+		vDemoTable.setVisible(false);
+		taskManager.addParallelTask(new SimpleTask() {
+			@Override
+			public void start() {
+				super.start();
+				System.out.println("start");
+			}
+
+			@Override
+			public void update(float dt) {
+
+			}
+		});
 
 		setInputProcessor();
 		start();
@@ -78,7 +97,7 @@ public class Main implements ApplicationListener, InputProcessor {
 		String atlasName;
 
 		float width = Gdx.graphics.getWidth();
-//		width = 1280;
+//		width = 2000;
 		float baseWidth;
 		if (width >= 1800) {
 			baseWidth = 2048;
@@ -130,6 +149,10 @@ public class Main implements ApplicationListener, InputProcessor {
 		skin.add("menu.button.undo.icon", atlas.createSprite("undo"));
 		skin.add("menu.button.redo", new NinePatchDrawable(new NinePatch(buttonFrame, intColor(126, 19, 167))), Drawable.class);
 		skin.add("menu.button.redo.icon", atlas.createSprite("redo"));
+		skin.add("menu.button.demo", new NinePatchDrawable(new NinePatch(buttonFrame, intColor(100, 86, 86))), Drawable.class);
+		skin.add("menu.button.demo.icon", atlas.createSprite("demo_start"));
+		skin.add("menu.button.democ", new NinePatchDrawable(new NinePatch(buttonFrame, intColor(100, 86, 86))), Drawable.class);
+		skin.add("menu.button.democ.icon", atlas.createSprite("demo_stop"));
 		skin.add("menu.button.exit", new NinePatchDrawable(new NinePatch(buttonFrame, intColor(200, 36, 36))), Drawable.class);
 		skin.add("menu.button.exit.icon", atlas.createSprite("power_off"));
 
@@ -180,26 +203,29 @@ public class Main implements ApplicationListener, InputProcessor {
 
 	@Override
 	public void resize(int width, int height) {
+//		height = (int) (height * (2048f/width));
+//		width = 2048;
 		stage.setViewport(width, height, false);
 		backgroundImage.setSize(width, height);
 		backgroundImage.layout();
 
 		vMenu.setViewRect(0f, height - menuHeight, width, menuHeight);
 		vTable.setViewRect(0f, 0f, width, height - menuHeight);
+		vDemoTable.setViewRect(0f, 0f, width, height - menuHeight);
 	}
 
 	@Override
 	public void render() {
 //		fpsLogger.log();
-		if (continuousRedering) {
+		if (continuousRendering) {
 			taskManager.update(Gdx.graphics.getDeltaTime());
 		}
 		Gdx.gl.glClearColor(1f, 1f, 1f, 1f);
 		Gdx.gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		stage.draw();
-		continuousRedering = !taskManager.isEmpty();
-		Gdx.graphics.setContinuousRendering(continuousRedering);
+		continuousRendering = !taskManager.isEmpty();
+		Gdx.graphics.setContinuousRendering(continuousRendering);
 //		Gdx.app.log("dip", stage.getSpriteBatch().renderCalls+"");
 	}
 
@@ -310,6 +336,23 @@ public class Main implements ApplicationListener, InputProcessor {
 		_tableController.redo();
 	}
 
+	public void startDemo() {
+		vMenu.setDemoMode(true);
+		demoTaskManager.clear();
+		taskManager.addParallelTask(demoTaskManager);
+		vTable.setVisible(false);
+		vDemoTable.setVisible(true);
+		vDemoTable.playDemo();
+	}
+
+	public void stopDemo() {
+		vMenu.setDemoMode(false);
+		demoTaskManager.stop();
+		vDemoTable.stopDemo();
+		vTable.setVisible(true);
+		vDemoTable.setVisible(false);
+	}
+
 	public void animationExit() {
 		final float TIME_BEFORE_EXIT = 0.5f;
 
@@ -325,8 +368,8 @@ public class Main implements ApplicationListener, InputProcessor {
 			}
 		};
 
-		taskManager.startTask(new TrackTask(trackForMenu));
-		taskManager.startTask(new DeferredTask(TIME_BEFORE_EXIT, exitRunnable));
+		taskManager.addParallelTask(new TrackTask(trackForMenu));
+//		taskManager.addParallelTask(new DeferredTask(TIME_BEFORE_EXIT, exitRunnable));
 	}
 
 	@Override
@@ -408,6 +451,16 @@ public class Main implements ApplicationListener, InputProcessor {
 		}
 
 		public void onClearTable() {
+		}
+
+		@Override
+		public void onStepBegin() {
+			//To change body of implemented methods use File | Settings | File Templates.
+		}
+
+		@Override
+		public void onStepFinish() {
+			//To change body of implemented methods use File | Settings | File Templates.
 		}
 	}
 }
