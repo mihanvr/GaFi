@@ -25,7 +25,7 @@ public class TrackTask extends SimpleTask {
 		time += dt;
 		if (time >= track.length()) {
 			track.setTime(track.length());
-			finish();
+			done();
 		} else {
 			track.setTime(time);
 		}

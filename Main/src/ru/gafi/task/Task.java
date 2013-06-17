@@ -5,5 +5,5 @@ public interface Task {
 
 	public void update(float dt);
 
-	public boolean isFinished();
+	public boolean isDone();
 }

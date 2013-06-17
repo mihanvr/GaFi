@@ -6,19 +6,19 @@ package ru.gafi.task;
  * Time: 16:17
  */
 public abstract class SimpleTask implements Task {
-	private boolean finished;
+	private boolean _done;
 
 	@Override
 	public void start() {
-		finished = false;
+		_done = false;
 	}
 
-	protected void finish() {
-		finished = true;
+	protected void done() {
+		_done = true;
 	}
 
 	@Override
-	public boolean isFinished() {
-		return finished;
+	public boolean isDone() {
+		return _done;
 	}
 }

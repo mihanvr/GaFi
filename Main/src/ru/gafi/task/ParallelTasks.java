@@ -8,38 +8,44 @@ import java.util.List;
  * Date: 13.06.13
  * Time: 11:22
  */
-public class ParallelTasks extends CancelableTask implements CollectionTask {
+public class ParallelTasks extends CancelableTask implements CollectionTasks {
 
 	private List<Task> newTasks = new ArrayList<>();
 	private List<Task> newTasksBuffer = new ArrayList<>();
-	private List<Task> startedTasks = new ArrayList<>();
+	private List<Task> updateTasks = new ArrayList<>();
 	private List<Task> tasksMarkForRemove = new ArrayList<>();
+
+	@Override
+	protected void startAfterCheck() {}
 
 	public void add(Task task) {
 		newTasks.add(task);
 	}
 
 	@Override
-	public void start() {
+	public void update(float dt) {
+		updateTasks(dt);
 		startNewTasks();
+		removeDoneTasks();
 	}
 
-	@Override
-	public void update(float dt) {
-		startNewTasks();
-		if (!startedTasks.isEmpty()) {
-			for (Task task : startedTasks) {
+	private void removeDoneTasks() {
+		if (!tasksMarkForRemove.isEmpty()) {
+			for (Task task : tasksMarkForRemove) {
+				updateTasks.remove(task);
+			}
+			tasksMarkForRemove.clear();
+		}
+	}
+
+	private void updateTasks(float dt) {
+		if (!updateTasks.isEmpty()) {
+			for (Task task : updateTasks) {
 				task.update(dt);
-				if (task.isFinished()) {
+				if (task.isDone()) {
 					tasksMarkForRemove.add(task);
 				}
 			}
-		}
-		if (!tasksMarkForRemove.isEmpty()) {
-			for (Task task : tasksMarkForRemove) {
-				startedTasks.remove(task);
-			}
-			tasksMarkForRemove.clear();
 		}
 	}
 
@@ -47,10 +53,10 @@ public class ParallelTasks extends CancelableTask implements CollectionTask {
 		if (!newTasks.isEmpty()) {
 			newTasksBuffer.addAll(newTasks);
 			newTasks.clear();
-			for (Task task : newTasksBuffer) {
+			for (Task task: newTasksBuffer) {
 				task.start();
-				if (!task.isFinished()) {
-					startedTasks.add(task);
+				if (!task.isDone()) {
+					updateTasks.add(task);
 				}
 			}
 			newTasksBuffer.clear();
@@ -60,10 +66,10 @@ public class ParallelTasks extends CancelableTask implements CollectionTask {
 	@Override
 	public void clear() {
 		newTasks.clear();
-		startedTasks.clear();
+		updateTasks.clear();
 	}
 
 	public boolean isEmpty() {
-		return newTasks.isEmpty() && startedTasks.isEmpty();
+		return newTasks.isEmpty() && updateTasks.isEmpty();
 	}
 }

@@ -7,7 +7,7 @@ package ru.gafi.task;
  */
 public abstract class InstantTask implements Task {
 	@Override
-	public boolean isFinished() {
+	public boolean isDone() {
 		return true;
 	}
 

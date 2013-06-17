@@ -5,12 +5,12 @@ package ru.gafi.task;
  * Date: 10.06.13
  * Time: 16:16
  */
-public class ListTask implements Task {
+public class SerialTasks implements Task {
 	private Task[] tasks;
 	private Task currentTask;
 	private int index;
 
-	public ListTask(Task... tasks) {
+	public SerialTasks(Task... tasks) {
 		this.tasks = tasks;
 	}
 
@@ -24,7 +24,7 @@ public class ListTask implements Task {
 		while (index < tasks.length && nextTask == null) {
 			nextTask = tasks[index++];
 			nextTask.start();
-			if (nextTask.isFinished()) {
+			if (nextTask.isDone()) {
 				nextTask = null;
 			}
 		}
@@ -33,12 +33,12 @@ public class ListTask implements Task {
 
 	public void update(float dt) {
 		currentTask.update(dt);
-		if (currentTask.isFinished()) {
+		if (currentTask.isDone()) {
 			nextTask();
 		}
 	}
 
-	public boolean isFinished() {
+	public boolean isDone() {
 		return currentTask == null;
 	}
 }

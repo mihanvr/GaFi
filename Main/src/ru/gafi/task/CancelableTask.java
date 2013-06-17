@@ -7,8 +7,28 @@ package ru.gafi.task;
  */
 public abstract class CancelableTask extends SimpleTask {
 
-	public void stop() {
-		finish();
+	private boolean canceled;
+
+	@Override
+	public final void start() {
+		super.start();
+		if (!canceled) {
+			startAfterCheck();
+		} else {
+			done();
+		}
 	}
 
+	protected abstract void startAfterCheck();
+
+	public void stop() {
+		super.done();
+		canceled = true;
+	}
+
+	@Override
+	protected void done() {
+		super.done();
+		canceled = false;
+	}
 }

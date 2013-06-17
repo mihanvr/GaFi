@@ -7,7 +7,7 @@ import java.util.LinkedList;
  * Date: 13.06.13
  * Time: 9:19
  */
-public class QueueTask extends CancelableTask implements CollectionTask {
+public class QueueTasks extends CancelableTask implements CollectionTasks {
 	private LinkedList<Task> tasksQueue = new LinkedList<>();
 	private Task currentQueueTask;
 
@@ -16,7 +16,7 @@ public class QueueTask extends CancelableTask implements CollectionTask {
 	}
 
 	@Override
-	public void start() {
+	public void startAfterCheck() {
 		nextQueueTask();
 	}
 
@@ -24,7 +24,7 @@ public class QueueTask extends CancelableTask implements CollectionTask {
 	public void update(float dt) {
 		if (currentQueueTask != null) {
 			currentQueueTask.update(dt);
-			if (currentQueueTask.isFinished()) {
+			if (currentQueueTask.isDone()) {
 				nextQueueTask();
 			}
 		} else {
@@ -38,7 +38,7 @@ public class QueueTask extends CancelableTask implements CollectionTask {
 			nextTask = tasksQueue.getFirst();
 			tasksQueue.removeFirst();
 			nextTask.start();
-			if (nextTask.isFinished()) {
+			if (nextTask.isDone()) {
 				nextTask = null;
 			}
 		}

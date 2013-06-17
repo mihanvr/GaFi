@@ -22,7 +22,7 @@ public class TaskSleep implements Task {
 	}
 
 	@Override
-	public boolean isFinished() {
+	public boolean isDone() {
 		return timeLeft >= timeDuration;
 	}
 }

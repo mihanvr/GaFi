@@ -60,13 +60,11 @@ public class SAnimation {
 	private class Updater extends CancelableTask {
 
 		@Override
-		public void start() {
-
-		}
-
-		@Override
 		public void update(float dt) {
 			SAnimation.this.update(dt);
 		}
+
+		@Override
+		protected void startAfterCheck() {}
 	}
 }

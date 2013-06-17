@@ -8,7 +8,7 @@ package ru.gafi.task;
 public class TaskManager extends CancelableTask {
 
 	private ParallelTasks parallelTasks = new ParallelTasks();
-	private QueueTask queueTask = new QueueTask();
+	private QueueTasks queueTask = new QueueTasks();
 
 	public void addTaskInQueue(Task task) {
 		queueTask.add(task);
@@ -19,8 +19,7 @@ public class TaskManager extends CancelableTask {
 	}
 
 	@Override
-	public void start() {
-		super.start();
+	public void startAfterCheck() {
 		queueTask.start();
 		parallelTasks.start();
 	}

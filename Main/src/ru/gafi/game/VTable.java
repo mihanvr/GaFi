@@ -681,7 +681,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 	}
 
 	private class TaskClearTable implements Task {
-		private ListTask listTask;
+		private SerialTasks serialTasks;
 
 		public TaskClearTable(Collection<VTableAction> removeFigures, Collection<VTableAction> closeCells) {
 			List<Task> actionsRemoveFigures = new ArrayList<>();
@@ -692,23 +692,23 @@ public class VTable extends AnimatedActor implements ITableListener {
 			for (VTableAction action : closeCells) {
 				actionsCloseCell.add(action);
 			}
-			listTask = new ListTask(
+			serialTasks = new SerialTasks(
 					new GroupTask(toArray(actionsRemoveFigures)),
 					new GroupTask(toArray(actionsCloseCell))
 			);
 		}
 
 		public void start() {
-			listTask.start();
+			serialTasks.start();
 		}
 
 		public void update(float dt) {
-			listTask.update(dt);
+			serialTasks.update(dt);
 		}
 
 		@Override
-		public boolean isFinished() {
-			return listTask.isFinished();
+		public boolean isDone() {
+			return serialTasks.isDone();
 		}
 	}
 
@@ -722,7 +722,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 		}
 
 		@Override
-		public boolean isFinished() {
+		public boolean isDone() {
 			return timeLeft >= timeDuration;
 		}
 
@@ -731,7 +731,7 @@ public class VTable extends AnimatedActor implements ITableListener {
 			timeLeft += dt;
 			if (timeLeft >= timeDuration) {
 				onFinish();
-				finish();
+				done();
 			}
 		}
 

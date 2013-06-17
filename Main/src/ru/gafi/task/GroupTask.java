@@ -1,9 +1,5 @@
 package ru.gafi.task;
 
-import java.util.Collection;
-
-import static ru.gafi.task.TaskUtils.*;
-
 /**
  * User: Michael
  * Date: 10.06.13
@@ -26,15 +22,15 @@ public class GroupTask extends SimpleTask {
 
 	private void checkOnFinish() {
 		for (int i = 0; i < tasks.length; i++) {
-			if (!tasks[i].isFinished()) return;
+			if (!tasks[i].isDone()) return;
 		}
-		finish();
+		done();
 	}
 
 	public void update(float dt) {
 		for (int i = 0; i < tasks.length; i++) {
 			Task task = tasks[i];
-			if (!task.isFinished()) {
+			if (!task.isDone()) {
 				task.update(dt);
 			}
 		}
