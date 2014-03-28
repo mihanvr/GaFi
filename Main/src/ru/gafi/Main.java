@@ -339,6 +339,7 @@ public class Main implements ApplicationListener, InputProcessor {
 	public void startDemo() {
 		vMenu.setDemoMode(true);
 		demoTaskManager.clear();
+		demoTaskManager.resume();
 		taskManager.addParallelTask(demoTaskManager);
 		vTable.setVisible(false);
 		vDemoTable.setVisible(true);

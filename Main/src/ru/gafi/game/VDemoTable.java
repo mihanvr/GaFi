@@ -49,6 +49,7 @@ public class VDemoTable extends VTable {
 	public void playDemo() {
 		clearGame();
 		updateTableSize(false);
+		resetTableModel();
 		initFromModel();
 		unselectPoint();
 		tableController.clearTable();
@@ -73,7 +74,6 @@ public class VDemoTable extends VTable {
 		taskManager.addTaskInQueue(new TaskSleep(1f));
 		tableController.tryMove(new Point(4, 1), new Point(1, 1));
 		flushActions();
-
 		taskManager.addTaskInQueue(new TaskSleep(1f));
 		taskManager.addTaskInQueue(new ActionSelectFigure(new Point(5, 0)));
 		taskManager.addTaskInQueue(new TaskSleep(1f));
@@ -83,6 +83,16 @@ public class VDemoTable extends VTable {
 		taskManager.addTaskInQueue(new TaskSleep(1f));
 		flushActions();
 		taskManager.addTaskInQueue(finishTask);
+	}
+
+	private void resetTableModel() {
+		for (int i = 0; i < tableModel.rowCount(); i++) {
+			for (int j = 0; j < tableModel.columnCount(); j++) {
+				TableCell cell = tableModel.getCell(i, j);
+				cell.opened = false;
+				cell.figure = null;
+			}
+		}
 	}
 
 	public void stopDemo() {

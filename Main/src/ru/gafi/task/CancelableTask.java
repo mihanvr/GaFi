@@ -19,6 +19,10 @@ public abstract class CancelableTask extends SimpleTask {
 		}
 	}
 
+	public void resume() {
+		canceled = false;
+	}
+
 	protected abstract void startAfterCheck();
 
 	public void stop() {
