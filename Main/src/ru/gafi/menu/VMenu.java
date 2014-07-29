@@ -148,9 +148,14 @@ public class VMenu extends Group {
 
 	private EventListener resetListener(final Main main) {
 		return new InputListener() {
+			private long lastTime = -1;
 			@Override
 			public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-				main.resetGame();
+				long currentTime = System.currentTimeMillis();
+				if (currentTime - lastTime >= 500) {
+					main.resetGame();
+					lastTime = currentTime;
+				}
 				return true;
 			}
 		};
